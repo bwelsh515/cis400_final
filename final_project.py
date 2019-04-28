@@ -4,10 +4,10 @@ import json
 from textblob import TextBlob
 import matplotlib.pyplot as plt
 
-CONSUMER_KEY = 'oedakYTzKYx3lFmXiR49mbMH5'
-CONSUMER_SECRET = 'SfWHJrMPG3EYk20hbJEDv5rBAr28yCwur8vhyt3WiMDCLeknjB'
-OAUTH_TOKEN = '1642025605-JtGSSNpNsOyl599zzC6W2CETx292Ofy5vzF3Oq7'
-OAUTH_TOKEN_SECRET = "vQOlN1v5vFt04kMzBZgLeNJZdF8ORHCHC8M7mcwz8maYC"
+CONSUMER_KEY = 'Vng4wfaNrGi9secRxf7ONDV6P'
+CONSUMER_SECRET = 'sPbDeLBUDzfAWjTFFAQpzXGSscR4HoWskR2WsRV15yc0gXxFEy'
+OAUTH_TOKEN = '1100554247110885381-dMCDTqYDjfRUBiLAHZf7euYE8xW1EO'
+OAUTH_TOKEN_SECRET = 'uJw2icakNDU16OWPqjOaViBZ3sRXG0Xf1DajQTMS4dLYV'
 
 def oauth_login():
     auth = twitter.oauth.OAuth(
@@ -34,6 +34,7 @@ tweets = tweepy.Cursor(api.search,
 total_unweighted_polarity = 0.0
 total_weighted_polarity = 0.0
 
+list_of_polarities = list()
 # Holds all weighted polarities for each tweet
 list_of_weighted_polarities = list()
 # Holds subjectivities for each tweet
@@ -78,6 +79,7 @@ for tweet in tweets:
 
     list_of_weighted_polarities.append(weighted_polarity)
     list_of_subjectivities.append(subjectivity)
+    list_of_polarities.append(polarity)
 
 # Get averages
 average_unweighted_polarity = total_unweighted_polarity / number_of_tweets
@@ -96,10 +98,22 @@ print('Average Weighted Polarity: ' + str(average_weighted_polarity))
 # print("All Weighted Polarities: " + stringList)
 
 # Display scatter plot
+plt.figure(1)
 plt.plot(list_of_weighted_polarities, 'rx')
 plt.axhline(y=average_unweighted_polarity, label='mean')
 plt.ylabel('Polarities')
 plt.xlabel('Tweets')
 plt.legend()
 plt.title(str(keyword))
+
+plt.figure(2)
+plt.plot(list_of_polarities, list_of_subjectivities, 'rx')
+plt.axhline(y=0.5)
+plt.axvline(x=0.0)
+plt.ylabel('Subjectiveness')
+plt.xlabel('Polarity')
+plt.legend()
+plt.grid(True)
+plt.title(str(keyword))
+
 plt.show()
