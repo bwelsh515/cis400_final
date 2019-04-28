@@ -22,13 +22,14 @@ auth.set_access_token(OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
 api = tweepy.API(auth)
 
 keyword = "Duke+Basketball"
+number_of_tweets = 1
 
 tweets = tweepy.Cursor(api.search,
                        q=keyword + " -filter:retweets",
                        since="2019-01-01",
                        #    until="2019-03-01",
                        lang="en",
-                       ).items(1)
+                       ).items(number_of_tweets)
 
 total_polarity = 0.0
 for tweet in tweets:
@@ -37,9 +38,9 @@ for tweet in tweets:
     follower_count = tweet.user.followers_count
 
     print(tweet.text)
-    sentiment_of_tweet = TextBlob("         " + tweet.text)
+    sentiment_of_tweet = TextBlob(tweet.text)
     total_polarity += sentiment_of_tweet.sentiment.polarity
-    # print(test.sentiment)
+    print(sentiment_of_tweet.sentiment)
 
 print('Total Polarity: ' + str(total_polarity))
-print('Average Polarity: ' + str(total_polarity / 100))
+print('Average Polarity: ' + str(total_polarity / number_of_tweets))
