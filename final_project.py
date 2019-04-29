@@ -78,6 +78,7 @@ for tweet in tweets:
 
     list_of_weighted_polarities.append(weighted_polarity)
     list_of_subjectivities.append(subjectivity)
+    list_of_polarities.append(polarity)
 
 # Get averages
 average_unweighted_polarity = total_unweighted_polarity / number_of_tweets
@@ -96,10 +97,22 @@ print('Average Weighted Polarity: ' + str(average_weighted_polarity))
 # print("All Weighted Polarities: " + stringList)
 
 # Display scatter plot
+plt.figure(1)
 plt.plot(list_of_weighted_polarities, 'rx')
 plt.axhline(y=average_unweighted_polarity, label='mean')
 plt.ylabel('Polarities')
 plt.xlabel('Tweets')
 plt.legend()
 plt.title(str(keyword))
+
+plt.figure(2)
+plt.plot(list_of_polarities, list_of_subjectivities, 'rx')
+plt.axhline(y=0.5)
+plt.axvline(x=0.0)
+plt.ylabel('Subjectiveness')
+plt.xlabel('Polarity')
+plt.legend()
+plt.grid(True)
+plt.title(str(keyword))
+
 plt.show()
