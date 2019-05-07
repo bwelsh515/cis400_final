@@ -8,7 +8,6 @@ CONSUMER_KEY = 'oedakYTzKYx3lFmXiR49mbMH5'
 CONSUMER_SECRET = 'SfWHJrMPG3EYk20hbJEDv5rBAr28yCwur8vhyt3WiMDCLeknjB'
 OAUTH_TOKEN = '1642025605-JtGSSNpNsOyl599zzC6W2CETx292Ofy5vzF3Oq7'
 OAUTH_TOKEN_SECRET = "vQOlN1v5vFt04kMzBZgLeNJZdF8ORHCHC8M7mcwz8maYC"
-keywords = ""
 
 
 def oauth_login():
@@ -18,121 +17,106 @@ def oauth_login():
     return twitter_api
 
 
-def search(search_keywords, number_of_tweets):
-    # Get all tweets for that query
-    t = tweepy.Cursor(api.search,
-                      q=search_keywords + " -filter:retweets",
-                      since_date="2019-01-01",
-                      until_date="2019-03-01",
-                      lang="en",
-                      ).items(number_of_tweets)
+auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+auth.set_access_token(OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
+api = tweepy.API(auth)
 
-    return t
+# Search Query
+keyword = "Duke+Basketball"
+number_of_tweets = 200
 
+# Get all tweets for that query
+tweets = tweepy.Cursor(api.search,
+                       q=keyword + " -filter:retweets",
+                       since="2019-01-01",
+                       #    until="2019-03-01",
+                       lang="en",
+                       ).items(number_of_tweets)
 
-def plot_of_weighted_polarities():
-    # Display scatter plot
-    plt.figure(1)
-    plt.plot(list_of_weighted_polarities, 'rx')
-    plt.axhline(y=average_unweighted_polarity, label='mean')
-    plt.ylabel('Polarities')
-    plt.xlabel('Tweets')
-    plt.legend()
-    plt.title(str(keywords))
+total_unweighted_polarity = 0.0
+total_weighted_polarity = 0.0
 
+# Holds all weighted polarities for each tweet
+list_of_weighted_polarities = list()
+# Holds subjectivities for each tweet
+list_of_subjectivities = list()
 
-def plot_of_subjectivites_polarities():
-    plt.figure(2)
-    plt.plot(list_of_polarities, list_of_subjectivities, 'rx')
-    plt.axhline(y=0.5)
-    plt.axvline(x=0.0)
-    plt.ylabel('Subjectiveness')
-    plt.xlabel('Polarity')
-    plt.grid(True)
-    plt.title(str(keywords))
+list_of_polarities = list()
 
+# Iterate through all tweets and extract analytical information
+for tweet in tweets:
+    favorites_count = tweet.favorite_count
+    retweets_count = tweet.retweet_count
+    followers_count = tweet.user.followers_count
 
-# main function
-if __name__ == "__main__":
-    auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
-    auth.set_access_token(OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
-    api = tweepy.API(auth)
+    # Mikes Analytics
+    impactOne = favorites_count * retweets_count
+    impactTwo = favorites_count * retweets_count * followers_count
 
-    # Search Query
-    keywords = "Baylor+Mens+Basketball"
-    number_of_tweets = 200
+    # print(tweet.text)
+    sentiment_of_tweet = TextBlob(tweet.text)
+    polarity = sentiment_of_tweet.sentiment.polarity
+    subjectivity = sentiment_of_tweet.sentiment.subjectivity
 
-    tweets = search(keywords, number_of_tweets)
+    total_unweighted_polarity += polarity
+    weighted_polarity = polarity
 
-    total_unweighted_polarity = 0.0
-    total_weighted_polarity = 0.0
+    # If the user has a low number of followers, lower their weight
+    # (This is because they could be a bot, so they should not be able
+    # to impact the results as much as a human)
+    if (followers_count < 100):
+        weighted_polarity = polarity * 0.1
 
-    # Holds all weighted polarities for each tweet
-    list_of_weighted_polarities = list()
-    # Holds subjectivities for each tweet
-    list_of_subjectivities = list()
-    list_of_polarities = list()
+    # Weight the polarity based on subjectivity
+    # The more subjective, the higher the weight
+    if (subjectivity <= 0.25):
+        weighted_polarity = weighted_polarity * 4
+    elif (subjectivity <= 0.5):
+        weighted_polarity = weighted_polarity * 3
+    elif (subjectivity < - 0.75):
+        weighted_polarity = weighted_polarity * 2
+    else:
+        weighted_polarity = weighted_polarity * 1
 
-    # Iterate through all tweets and extract analytical information
-    for tweet in tweets:
-        favorites_count = tweet.favorite_count
-        retweets_count = tweet.retweet_count
-        followers_count = tweet.user.followers_count
+    total_weighted_polarity += weighted_polarity
 
-        # Mikes Analytics
-        impactOne = favorites_count * retweets_count
-        impactTwo = favorites_count * retweets_count * followers_count
+    list_of_weighted_polarities.append(weighted_polarity)
+    list_of_subjectivities.append(subjectivity)
+    list_of_polarities.append(polarity)
 
-        # print(tweet.text)
-        sentiment_of_tweet = TextBlob(tweet.text)
-        polarity = sentiment_of_tweet.sentiment.polarity
-        subjectivity = sentiment_of_tweet.sentiment.subjectivity
+# Get averages
+average_unweighted_polarity = total_unweighted_polarity / number_of_tweets
+average_weighted_polarity = total_weighted_polarity / number_of_tweets
 
-        total_unweighted_polarity += polarity
-        weighted_polarity = polarity
+# Print results
+print('Total Polarity: ' + str(total_unweighted_polarity))
+print('Average Polarity: ' + str(average_unweighted_polarity))
+print('Total Weighted Polarity: ' + str(total_weighted_polarity))
+print('Average Weighted Polarity: ' + str(average_weighted_polarity))
 
-        # If the user has a low number of followers, lower their weight
-        # (This is because they could be a bot, so they should not be able
-        # to impact the results as much as a human)
-        if (followers_count < 100):
-            weighted_polarity = polarity * 0.1
+# Print out all weighted polarities
+# stringList = ""
+# for wp in list_of_weighted_polarities:
+#     stringList += str(wp) + " "
+# print("All Weighted Polarities: " + stringList)
 
-        # Weight the polarity based on subjectivity
-        # The more subjective, the higher the weight
-        if (subjectivity <= 0.25):
-            weighted_polarity = weighted_polarity * 4
-        elif (subjectivity <= 0.5):
-            weighted_polarity = weighted_polarity * 3
-        elif (subjectivity < - 0.75):
-            weighted_polarity = weighted_polarity * 2
-        else:
-            weighted_polarity = weighted_polarity * 1
+# Display scatter plot
+plt.figure(1)
+plt.plot(list_of_weighted_polarities, 'rx')
+plt.axhline(y=average_unweighted_polarity, label='mean')
+plt.ylabel('Polarities')
+plt.xlabel('Tweets')
+plt.legend()
+plt.title(str(keyword))
 
-        total_weighted_polarity += weighted_polarity
+plt.figure(2)
+plt.plot(list_of_polarities, list_of_subjectivities, 'rx')
+plt.axhline(y=0.5)
+plt.axvline(x=0.0)
+plt.ylabel('Subjectiveness')
+plt.xlabel('Polarity')
+plt.legend()
+plt.grid(True)
+plt.title(str(keyword))
 
-        list_of_weighted_polarities.append(weighted_polarity)
-        list_of_subjectivities.append(subjectivity)
-        list_of_polarities.append(polarity)
-
-    # Get averages
-    average_unweighted_polarity = total_unweighted_polarity / number_of_tweets
-    average_weighted_polarity = total_weighted_polarity / number_of_tweets
-
-    # Print results
-    print('Total Polarity: ' + str(total_unweighted_polarity))
-    print('Average Polarity: ' + str(average_unweighted_polarity))
-    print('Total Weighted Polarity: ' + str(total_weighted_polarity))
-    print('Average Weighted Polarity: ' + str(average_weighted_polarity))
-
-    # Print out all weighted polarities
-    # stringList = ""
-    # for wp in list_of_weighted_polarities:
-    #     stringList += str(wp) + " "
-    # print("All Weighted Polarities: " + stringList)
-
-    # Display scatter plot
-    plot_of_weighted_polarities()
-
-    plot_of_subjectivites_polarities()
-
-    plt.show()
+plt.show()
