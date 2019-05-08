@@ -1,6 +1,5 @@
 import twitter
 import tweepy
-import json
 from textblob import TextBlob
 import matplotlib.pyplot as plt
 
@@ -29,7 +28,7 @@ number_of_tweets = 200
 tweets = tweepy.Cursor(api.search,
                        q=keyword + " -filter:retweets",
                        since="2019-01-01",
-                    #    until="2019-03-01",
+                       #    until="2019-03-01",
                        lang="en",
                        ).items(number_of_tweets)
 
