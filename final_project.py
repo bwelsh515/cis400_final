@@ -29,7 +29,7 @@ number_of_tweets = 200
 tweets = tweepy.Cursor(api.search,
                        q=keyword + " -filter:retweets",
                        since="2019-01-01",
-                       #    until="2019-03-01",
+                    #    until="2019-03-01",
                        lang="en",
                        ).items(number_of_tweets)
 
@@ -73,7 +73,7 @@ for tweet in tweets:
         weighted_polarity = weighted_polarity * 4
     elif (subjectivity <= 0.5):
         weighted_polarity = weighted_polarity * 3
-    elif (subjectivity < - 0.75):
+    elif (subjectivity <= 0.75):
         weighted_polarity = weighted_polarity * 2
     else:
         weighted_polarity = weighted_polarity * 1
